@@ -7,26 +7,31 @@ int main(int argc, char **argv){
 
 	char *arquivo = argv[1];
 	FILE *fp;
-	char line[255];
-	char word[255];
 	char *token;
+
 	int i =0;
 
-        char **file_lines = (char **)malloc(1000 * sizeof(char *));
+//        char **file_lines = (char **)malloc(1000 * sizeof(char *));
 
-        for(i=0;i<1000;i++){
-                file_lines[i] = (char*)malloc(200 * sizeof(char));
+  	 char *file_lines[70000];
+
+       for(i=0;i<70000;i++){
+                file_lines[i] = (char*)malloc(2000 * sizeof(char));
         }
 
 	fp = fopen(arquivo, "r");
 
-	size_t buffer_size = 80;
+	size_t buffer_size = 2000;
+
         char *buffer = malloc(buffer_size * sizeof(char));
  
 	i = 0;
         while(-1 != getline(&buffer, &buffer_size, fp))
         {
-		file_lines[i] = buffer;
+		//printf("%s",buffer);
+
+		strcpy(file_lines[i],buffer);
+
 		i++;
 
         }
@@ -37,9 +42,4 @@ int main(int argc, char **argv){
 
         fclose(fp);
 
-
-#pragma omp parallel for
-	for(i=0;i<1000;i++)
-		
-
-} 
+}
