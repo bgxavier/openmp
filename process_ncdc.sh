@@ -2,7 +2,7 @@ DATASET_FOLDER="/Users/bgxavier/projects/OpenMP_MPI/dataset"
 
 mkdir -p $DATASET_FOLDER/files/all
 
-for year in {1950..2013}
+for year in {1940..1942}
 do
   echo "Processing $year year"
   cd $DATASET_FOLDER/files/$year
