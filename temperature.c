@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define YEAR_MIN 1910
-#define YEAR_MAX 1911
+#define YEAR_MIN 1901
+#define YEAR_MAX 1905
 #define DATASET_DIR "dataset/files/all/"
 #define KILLTAG 9999
 #define DONE_TAG 2
@@ -139,16 +139,13 @@ void slave()
         fclose(fp);
 
         // Carrega arquivo em memória
-        char **lines = (char**)malloc(line_counter*sizeof(char));
 
-        for(k=0;k<line_counter;k++){
-                lines[k] = (char*)malloc(sizeof(buffer) * sizeof(char));
-        }
+        char lines[line_counter][sizeof(buffer)];
 
         l=0;
         fp=fopen(path, "r");
         while (fgets(buffer, sizeof(buffer), fp) !=NULL ){
-            lines[l] = chop(buffer);
+            strcpy(lines[l],chop(buffer));//lines[l] = chop(buffer);
             l++;
         }
         fclose(fp);
