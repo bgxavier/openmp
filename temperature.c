@@ -51,7 +51,7 @@ int main(int argc, char  *argv[])
 
 void master()
 {
-    int i,j;
+    int i,j,dest;
     double t1,t2;
     int nprocs,rank;
     int next_year;
@@ -59,8 +59,10 @@ void master()
     int years_total = YEAR_MAX - YEAR_MIN + 1;
     int years_done = 0;
     int *years_bag = (int *) malloc(years_total * sizeof(int));
+    double received_temp;
 
     MPI_Status status;
+    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
     MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
 
     t1 = MPI_Wtime();
@@ -72,17 +74,18 @@ void master()
     }
 
     // Envio inicial
-    for(rank=1; rank < nprocs; rank++){
-       next_year = rank-1;
-       MPI_Send(&years_bag[next_year], 1, MPI_INT,rank,1,MPI_COMM_WORLD);
+    for(dest=1; dest < nprocs; dest++){
+       next_year = dest-1;
+       MPI_Send(&years_bag[next_year], 1, MPI_INT, dest,1,MPI_COMM_WORLD);
     }
 
     // Envia os próximos anos para processamento para os escravos liberados
     while(years_done < years_total){
 
         // verificar o próximo escravo liberado
-        MPI_Probe(MPI_ANY_SOURCE, DONE_TAG, MPI_COMM_WORLD, &status);
-
+        //MPI_Probe(MPI_ANY_SOURCE, DONE_TAG, MPI_COMM_WORLD, &status);
+        MPI_Recv(&received_temp, 1, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        printf("rank %d received %d: %.1f from %d\n",rank,status.MPI_TAG,received_temp,status.MPI_SOURCE);
         years_done++;
         next_year++;
 
@@ -91,8 +94,8 @@ void master()
     }
 
     /* Envia a tag de kill para que os slaves parem o processamento */
-    for(rank = 1;rank<nprocs;rank++)
-        MPI_Send(0,0,MPI_INT,rank,KILLTAG,MPI_COMM_WORLD);
+    for(dest=1;dest<nprocs;dest++)
+        MPI_Send(0,0,MPI_INT,dest,KILLTAG,MPI_COMM_WORLD);
 
 }
 
@@ -111,11 +114,7 @@ void slave()
     int i,l,k;
     FILE *fp;
 
-    int nprocs,rank;
     MPI_Status status;
-
-    MPI_Comm_size(MPI_COMM_WORLD, &nprocs);
-    MPI_Comm_rank(MPI_COMM_WORLD, &rank);
 
     // Recebe ano para processamento
     while(1){
@@ -129,19 +128,19 @@ void slave()
             break;
         }
 
-        // Apenda o ano no path
+        // complementa o ano no diretorio raiz
         sprintf(year_str, "%d", year);
         strcpy(path,DATASET_DIR);
         strcat(path, year_str);
 
-        // Computa numero de linhas no arquivo
+        // calcula o numero de linhas no arquivo
         fp=fopen(path, "r");
         while (fgets(buffer, sizeof(buffer), fp)!=NULL){
             line_counter++;
         }
         fclose(fp);
 
-        // Carrega arquivo em memória
+        // carrega arquivo em memória
         char **lines = (char**)malloc(line_counter*sizeof(char *));
 
         for(k=0;k<line_counter;k++){
@@ -156,7 +155,7 @@ void slave()
         }
         fclose(fp);
 
-        // Calcula temperatura maxima
+        // calcula temperatura maxima para o ano
 #pragma omp parallel for schedule(static,100) shared(temperature,lines,line_counter) firstprivate(substring,temp,special)
         for(i=0;i<line_counter;i++){
             strncpy(substring,lines[i]+87,5);
@@ -169,9 +168,9 @@ void slave()
                }
         }
 
-        printf("rank %d ano %d: %.1f\n", rank,year, temperature/10);
-
-        MPI_Send(0, 0, MPI_INT, 0, DONE_TAG, MPI_COMM_WORLD);
+        double adjusted_temp = temperature/10;
+        MPI_Send(&adjusted_temp, 1, MPI_DOUBLE, 0, year, MPI_COMM_WORLD);
+        //MPI_Send(&year, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
         // libera memória
         for(k=0;k<line_counter;k++){
