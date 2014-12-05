@@ -4,7 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define YEAR_MIN 1938
+#define YEAR_MIN 1930
 #define YEAR_MAX 1943
 #define DATASET_DIR "dataset/files/all/"
 #define KILLTAG 9999
