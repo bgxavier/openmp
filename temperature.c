@@ -157,7 +157,7 @@ void slave()
         fclose(fp);
 
         // Calcula temperatura maxima
-#pragma omp parallel for shared(temperature,lines,line_counter) firstprivate(substring,temp,special)
+#pragma omp parallel for schedule(static,100) shared(temperature,lines,line_counter) firstprivate(substring,temp,special)
         for(i=0;i<line_counter;i++){
             strncpy(substring,lines[i]+87,5);
             temp = atoi(substring);
