@@ -4,8 +4,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#define YEAR_MIN 1901
-#define YEAR_MAX 1918
+#define YEAR_MIN 1938
+#define YEAR_MAX 1943
 #define DATASET_DIR "dataset/files/all/"
 #define KILLTAG 9999
 #define DONE_TAG 2
@@ -32,6 +32,7 @@ int main(int argc, char  *argv[])
 {
     int i;
     int rank, nprocs;
+    int num_threads = atoi(argv[1]);
 
     MPI_Status status;
 
@@ -43,7 +44,7 @@ int main(int argc, char  *argv[])
         master();
     }
     else
-        slave();
+        slave(num_threads);
 
     MPI_Finalize();
     return 0;
@@ -99,7 +100,7 @@ void master()
 
 }
 
-void slave()
+void slave(int num_threads)
 {
     char buffer[400];
     char substring[5];
@@ -115,6 +116,8 @@ void slave()
     FILE *fp;
 
     MPI_Status status;
+
+    omp_set_num_threads(num_threads);
 
     // Recebe ano para processamento
     while(1){
@@ -156,7 +159,7 @@ void slave()
         fclose(fp);
 
         // calcula temperatura maxima para o ano
-#pragma omp parallel for schedule(static,100) shared(temperature,lines,line_counter) firstprivate(substring,temp,special)
+#pragma omp parallel for schedule(static,100) shared(temperature,lines,line_counter) private(substring,temp,special)
         for(i=0;i<line_counter;i++){
             strncpy(substring,lines[i]+87,5);
             temp = atoi(substring);
@@ -167,9 +170,9 @@ void slave()
                 temperature = temp;
                }
         }
-
         double adjusted_temp = temperature/10;
         MPI_Send(&adjusted_temp, 1, MPI_DOUBLE, 0, year, MPI_COMM_WORLD);
+
         //MPI_Send(&year, 1, MPI_INT, 0, 0, MPI_COMM_WORLD);
 
         // libera memória
