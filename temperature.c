@@ -129,7 +129,8 @@ void slave(int num_threads)
 
     MPI_Status status;
 
-    omp_set_num_threads(num_threads);
+    #pragma omp parallel
+    omp_set_num_threads(8);
 
     // Recebe ano para processamento
     while(1){
