@@ -11,7 +11,7 @@
 #define DONE_TAG 2
 
 void master();
-void slave();
+void slave(int num_threads);
 
 char* chop(char *string)
 {
