@@ -62,6 +62,7 @@ void master()
     int years_done = 0;
     int *years_bag = (int *) malloc(years_total * sizeof(int));
     double received_temp;
+    double final_temp = -1111;
 
     MPI_Status status;
     MPI_Comm_rank(MPI_COMM_WORLD, &rank);
@@ -85,8 +86,9 @@ void master()
     while(years_done < years_total){
 
         // verificar o próximo escravo liberado
-        //MPI_Probe(MPI_ANY_SOURCE, DONE_TAG, MPI_COMM_WORLD, &status);
         MPI_Recv(&received_temp, 1, MPI_DOUBLE, MPI_ANY_SOURCE, MPI_ANY_TAG, MPI_COMM_WORLD, &status);
+        if(received_temp > final_temp)
+            final_temp = received_temp;
         printf("rank %d received %d: %.1f from %d\n",rank,status.MPI_TAG,received_temp,status.MPI_SOURCE);
         years_done++;
         next_year++;
@@ -97,11 +99,15 @@ void master()
 
     t2 = MPI_Wtime();
 
+    /* imprime a maior temperatura coletada */
+    printf("Maior temperatura coletada: %.1f\n", final_temp);
+
     /* Envia a tag de kill para que os slaves parem o processamento */
     for(dest=1;dest<nprocs;dest++)
         MPI_Send(0,0,MPI_INT,dest,KILLTAG,MPI_COMM_WORLD);
 
-    /* Imprime o tempo final */
+
+    /* Imprime o tempo de execução */
     printf("Tempo de execucao: %f\n", t2-t1);
 
 }
