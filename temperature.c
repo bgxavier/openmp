@@ -172,7 +172,6 @@ void slave(int num_threads)
         omp_set_num_threads(num_threads);
 #pragma omp parallel for schedule(static,100)  shared(temperature,lines,line_counter) private(substring,temp,special)
         for(i=0;i<line_counter;i++){
-            printf("numero de threads: %d\n", omp_get_num_threads() );
             strncpy(substring,lines[i]+87,5);
             temp = atoi(substring);
             special = lines[i][92] - '0';
