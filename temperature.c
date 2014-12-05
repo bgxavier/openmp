@@ -34,6 +34,7 @@ int main(int argc, char  *argv[])
     int rank, nprocs;
     int num_threads = atoi(argv[1]);
 
+
     MPI_Status status;
 
     MPI_Init(&argc, &argv);
@@ -94,9 +95,14 @@ void master()
             MPI_Send(&years_bag[next_year], 1, MPI_INT,status.MPI_SOURCE,1,MPI_COMM_WORLD);
     }
 
+    t2 = MPI_Wtime();
+
     /* Envia a tag de kill para que os slaves parem o processamento */
     for(dest=1;dest<nprocs;dest++)
         MPI_Send(0,0,MPI_INT,dest,KILLTAG,MPI_COMM_WORLD);
+
+    /* Imprime o tempo final */
+    printf("Tempo de execucao: %f\n", t2-t1);
 
 }
 
