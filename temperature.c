@@ -12,21 +12,7 @@
 
 void master();
 void slave(int num_threads);
-
-char* chop(char *string)
-{
-    int i, len;
-    len = strlen(string);
-    char *newstring;
-
-    newstring = (char *)malloc(len-1);
-
-    for(i = 0; i < strlen(string)-1; i++){
-        newstring[i] = string[i];
-    }
-
-    return newstring;
-}
+char *chop(char *string);
 
 int main(int argc, char  *argv[])
 {
@@ -175,11 +161,12 @@ void slave(int num_threads)
             strncpy(substring,lines[i]+87,5);
             temp = atoi(substring);
             special = lines[i][92] - '0';
-            if(temp != 9999 && temp > temperature && (special == 1 || special == 4 || special == 0 || special == 5 || special == 9))
+            if(temp != 9999 && temp > temperature && (special == 1 || special == 4 || special == 0 || special == 5 || special == 9)){
                #pragma omp critical
                {
                 temperature = temp;
                }
+            }
         }
         double adjusted_temp = temperature/10;
         MPI_Send(&adjusted_temp, 1, MPI_DOUBLE, 0, year, MPI_COMM_WORLD);
@@ -193,4 +180,19 @@ void slave(int num_threads)
 
     }
 
+}
+
+char* chop(char *string)
+{
+    int i, len;
+    len = strlen(string);
+    char *newstring;
+
+    newstring = (char *)malloc(len-1);
+
+    for(i = 0; i < strlen(string)-1; i++){
+        newstring[i] = string[i];
+    }
+
+    return newstring;
 }
